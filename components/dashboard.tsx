@@ -143,7 +143,6 @@ export default function Dashboard() {
         <Card className="flex-1 min-w-[80px] max-w-[200px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">คงเหลือ</CardTitle>
-            <span className="h-4 w-4 text-muted-foreground">฿</span>
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold">{balance.toFixed(2)}</div>
@@ -160,7 +159,7 @@ export default function Dashboard() {
         </Card>
         <Card className="flex-1 min-w-[80px] max-w-[200px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">ค่าใช้จ่าย</CardTitle>
+            <CardTitle className="text-sm font-medium">รายจ่าย</CardTitle>
             <ArrowDownIcon className="h-4 w-4 text-rose-500" />
           </CardHeader>
           <CardContent>

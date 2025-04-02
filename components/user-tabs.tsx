@@ -11,15 +11,15 @@ interface UserTabsProps {
 
 export function UserTabs({ selectedUser, onUserChange }: UserTabsProps) {
   return (
-    <Card className="p-4">
+
       <Tabs value={selectedUser} onValueChange={onUserChange} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger
             value="ray"
-            className="flex items-center justify-center gap-2 py-3"
+            className="flex items-center justify-center gap-2 "
             data-state={selectedUser === "ray" ? "active" : "inactive"}
           >
-            <Avatar data-state="active" className="h-10 w-10 border-2 border-transparent data-[state=active]:border-primary">
+            <Avatar data-state="active" className="h-8 w-8">
               <AvatarImage src="/cute_girl.png" alt="Ray" />
               <AvatarFallback>R</AvatarFallback>
             </Avatar>
@@ -28,10 +28,10 @@ export function UserTabs({ selectedUser, onUserChange }: UserTabsProps) {
           </TabsTrigger>
           <TabsTrigger
             value="bon"
-            className="flex items-center justify-center gap-2 py-3"
+            className="flex items-center justify-center gap-2"
             data-state={selectedUser === "bon" ? "active" : "inactive"}
           >
-            <Avatar className="h-10 w-10 border-2 border-transparent data-[state=active]:border-primary">
+            <Avatar className="h-8 w-8 border-2 border-transparent data-[state=active]:border-primary">
               <AvatarImage src="/bad_boy.jpg" alt="Bon" />
               <AvatarFallback>B</AvatarFallback>
             </Avatar>
@@ -39,7 +39,7 @@ export function UserTabs({ selectedUser, onUserChange }: UserTabsProps) {
           </TabsTrigger>
         </TabsList>
       </Tabs>
-    </Card>
+
   )
 }
 

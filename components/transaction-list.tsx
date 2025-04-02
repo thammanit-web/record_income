@@ -158,7 +158,7 @@ export default function TransactionList({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>ประวัติธุรกรรม</CardTitle>
+          <CardTitle>ประวัติรายรับรายจ่าย</CardTitle>
           <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
             <Avatar className="h-6 w-6">
               <AvatarImage src={userAvatar} alt={userName} />
