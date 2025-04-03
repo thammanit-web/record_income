@@ -1,15 +1,17 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowDownIcon, ArrowUpIcon } from "lucide-react"
+import { ArrowDownIcon, ArrowUpIcon, CalendarIcon } from "lucide-react"
 import TransactionForm from "@/components/transaction-form"
 import TransactionList from "@/components/transaction-list"
 import type { Transaction, ApiResponse } from "@/lib/types"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
 import { UserTabs } from "@/components/user-tabs"
+import { isSameDay, isSameMonth, startOfMonth, endOfMonth, format } from "date-fns"
+import { th } from "date-fns/locale"
 
 export default function Dashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -100,11 +102,45 @@ export default function Dashboard() {
     }
   }
 
-  const totalIncome = transactions.filter((t) => t.type === "income").reduce((acc, t) => acc + t.amount, 0)
+  // Get current date
+  const today = new Date()
+  const currentMonth = startOfMonth(today)
+  const currentMonthEnd = endOfMonth(today)
+  const [selectedMonth, setSelectedMonth] = useState<string>(format(today, "yyyy-MM"))
 
-  const totalExpenses = transactions.filter((t) => t.type === "expense").reduce((acc, t) => acc + t.amount, 0)
+  // Format current month for display
+  const formattedCurrentMonth = format(today, "MMMM yyyy", { locale: th })
+  const handleMonthChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedMonth(event.target.value)
+  }
 
-  const balance = totalIncome - totalExpenses
+  const formattedSelectedMonth = format(new Date(selectedMonth), "MMMM yyyy", { locale: th })
+
+  // Calculate monthly totals (only transactions from current month)
+  const monthlyTransactions = useMemo(() => {
+    return transactions.filter((t) => {
+      const transactionDate = new Date(t.date)
+      return isSameMonth(transactionDate, new Date(selectedMonth))
+    })
+  }, [transactions, today])
+
+  const monthlyIncome = monthlyTransactions.filter((t) => t.type === "income").reduce((acc, t) => acc + t.amount, 0)
+
+  const monthlyExpenses = monthlyTransactions.filter((t) => t.type === "expense").reduce((acc, t) => acc + t.amount, 0)
+
+  const monthlyBalance = monthlyIncome - monthlyExpenses
+
+  // Calculate today's expenses
+  const todayTransactions = useMemo(() => {
+    return transactions.filter((t) => {
+      const transactionDate = new Date(t.date)
+      return isSameDay(transactionDate, today)
+    })
+  }, [transactions, today])
+
+  const todayExpenses = todayTransactions.filter((t) => t.type === "expense").reduce((acc, t) => acc + t.amount, 0)
+
+  const todayIncome = todayTransactions.filter((t) => t.type === "income").reduce((acc, t) => acc + t.amount, 0)
 
   const handleUserChange = (userId: string) => {
     setSelectedUser(userId)
@@ -113,7 +149,7 @@ export default function Dashboard() {
   const getUserInfo = () => {
     return {
       name: selectedUser === "ray" ? "Ray" : "Bon",
-      avatar: selectedUser === "Bon" ? "/bad_boy.jpg" : "/cute_girl.png",
+      avatar: selectedUser === "ray" ?  "/cute_girl.png" :"/bad_boy.jpg",
       fallback: selectedUser === "ray" ? "R" : "B",
     }
   }
@@ -139,31 +175,48 @@ export default function Dashboard() {
 
       <UserTabs selectedUser={selectedUser} onUserChange={handleUserChange} />
 
+      <div className="flex flex-col items-center gap-2">
+      <input
+          type="month"
+          value={format(selectedMonth, "yyyy-MM")}
+          onChange={handleMonthChange}
+          className="p-1 border rounded-md text-[8px]"
+        />
       <div className="flex flex-wrap gap-4 justify-center">
-        <Card className="flex-1 min-w-[80px] max-w-[200px]">
+        <Card className="flex-1 min-w-[100px  ] max-w-[300px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">คงเหลือ</CardTitle>
+            <CardTitle className="text-[10px] font-medium">คงเหลือ</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold">{balance.toFixed(2)}</div>
+            <div className="text-[14px] font-bold">{monthlyBalance.toFixed(2)}</div>
+            <p className="text-[8px] text-muted-foreground mt-1">
+              {formattedCurrentMonth}
+            </p>
           </CardContent>
         </Card>
-        <Card className="flex-1 min-w-[80px] max-w-[200px]">
+        <Card className="flex-1 min-w-[100px] max-w-[300px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">รายได้</CardTitle>
-            <ArrowUpIcon className="h-4 w-4 text-emerald-500" />
+            <CardTitle className="text-[10px] font-medium">รายได้</CardTitle>
+            <ArrowUpIcon className="h-2 w-2 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-emerald-500">{totalIncome.toFixed(2)}</div>
+            <div className="text-[14px]  font-bold text-emerald-500">{monthlyIncome.toFixed(2)}</div>
+            <div className="flex justify-between items-center mt-1">
+
+              <p className="text-[10px] text-emerald-500">วันนี้: {todayIncome.toFixed(2)}</p>
+            </div>
           </CardContent>
         </Card>
-        <Card className="flex-1 min-w-[80px] max-w-[200px]">
+        <Card className="flex-1 min-w-[100px] max-w-[300px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">รายจ่าย</CardTitle>
-            <ArrowDownIcon className="h-4 w-4 text-rose-500" />
+            <CardTitle className="text-[10px] font-medium">ค่าใช้จ่าย</CardTitle>
+            <ArrowDownIcon className="h-2 w-2 text-rose-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-rose-500">{totalExpenses.toFixed(2)}</div>
+            <div className="text-[14px] font-bold text-rose-500">{monthlyExpenses.toFixed(2)}</div>
+            <div className="flex justify-between items-center mt-1">
+              <p className="text-[10px] text-rose-500">วันนี้: {todayExpenses.toFixed(2)}</p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -186,10 +239,12 @@ export default function Dashboard() {
           <TransactionForm
             onSubmit={addTransaction}
             userName={userInfo.name}
+       
             userFallback={userInfo.fallback}
           />
         </TabsContent>
       </Tabs>
+    </div>
     </div>
   )
 }
