@@ -8,7 +8,9 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata = {
   title: "บันทึกรายรับรายจ่าย",
   description: "แอพบันทึกรายรับรายจ่ายส่วนตัว",
-    generator: 'v0.dev'
+    icons: {
+      icon: "/cute_girl.ico" 
+    }
 }
 
 export default function RootLayout({
