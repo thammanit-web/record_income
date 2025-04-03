@@ -210,7 +210,7 @@ export default function Dashboard() {
         </Card>
         <Card className="flex-1 min-w-[105px] max-w-[300px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[10px] font-medium">ค่าใช้จ่าย</CardTitle>
+            <CardTitle className="text-[10px] font-medium">รายจ่าย</CardTitle>
             <ArrowDownIcon className="h-2 w-2 text-rose-500" />
           </CardHeader>
           <CardContent>
