@@ -149,7 +149,7 @@ export default function Dashboard() {
   const getUserInfo = () => {
     return {
       name: selectedUser === "ray" ? "Ray" : "Bon",
-      avatar: selectedUser === "ray" ?  "/cute_girl.png" :"/bad_boy.jpg",
+      avatar: selectedUser === "ray" ?  "/cute_girl.png":"/bad_boy.jpg",
       fallback: selectedUser === "ray" ? "R" : "B",
     }
   }
@@ -182,8 +182,9 @@ export default function Dashboard() {
           onChange={handleMonthChange}
           className="p-1 border rounded-md text-[8px]"
         />
-      <div className="flex flex-wrap gap-4 justify-center">
-        <Card className="flex-1 min-w-[100px  ] max-w-[300px]">
+    
+      <div className="flex gap-2 justify-center">
+        <Card className="flex-1 min-w-[105px] max-w-[300px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-[10px] font-medium">คงเหลือ</CardTitle>
           </CardHeader>
@@ -194,7 +195,7 @@ export default function Dashboard() {
             </p>
           </CardContent>
         </Card>
-        <Card className="flex-1 min-w-[100px] max-w-[300px]">
+        <Card className="flex-1 min-w-[105px] max-w-[300px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-[10px] font-medium">รายได้</CardTitle>
             <ArrowUpIcon className="h-2 w-2 text-emerald-500" />
@@ -207,7 +208,7 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card className="flex-1 min-w-[100px] max-w-[300px]">
+        <Card className="flex-1 min-w-[105px] max-w-[300px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-[10px] font-medium">ค่าใช้จ่าย</CardTitle>
             <ArrowDownIcon className="h-2 w-2 text-rose-500" />
@@ -219,7 +220,7 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
 
       <Tabs defaultValue="transactions" className="space-y-4">
         <TabsList className="grid w-full grid-cols-2">
@@ -235,7 +236,7 @@ export default function Dashboard() {
             userFallback={userInfo.fallback}
           />
         </TabsContent>
-        <TabsContent value="add">
+        <TabsContent value="add" className="space-y-4">
           <TransactionForm
             onSubmit={addTransaction}
             userName={userInfo.name}
