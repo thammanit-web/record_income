@@ -60,7 +60,7 @@ export default function TransactionList({
   const [search, setSearch] = useState("")
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [selectedMonth, setSelectedMonth] = useState<string>("all")
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())  
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
   const isMobile = useMobile()
   const { toast } = useToast()
 
@@ -164,6 +164,22 @@ export default function TransactionList({
 
     setDeletingId(null)
   }
+  const { totalIncome, totalExpense, netTotal } = useMemo(() => {
+    const totalIncome = filteredTransactions
+      .filter((t) => t.type === "income")
+      .reduce((sum, t) => sum + t.amount, 0)
+
+    const totalExpense = filteredTransactions
+      .filter((t) => t.type === "expense")
+      .reduce((sum, t) => sum + t.amount, 0)
+
+    return {
+      totalIncome,
+      totalExpense,
+      netTotal: totalIncome - totalExpense
+    }
+  }, [filteredTransactions])
+
 
   // Clear all filters
   const clearFilters = () => {
@@ -300,6 +316,23 @@ export default function TransactionList({
         )}
       </CardHeader>
       <CardContent>
+        <div className="w-full flex justify-end items-end">
+          <CardDescription>
+            <div className="w-full flex justify-center items-center gap-4">
+              <div>
+                รายรับ: <span className="text-green-500 font-semibold">+{totalIncome.toFixed(2)}</span>
+              </div>
+              <br />
+              <div>
+                รายจ่าย: <span className="text-red-500 font-semibold">-{totalExpense.toFixed(2)}</span></div>
+              <br /><div>
+                ยอดสุทธิ:
+                <span className={`font-semibold ${netTotal >= 0 ? "text-green-500" : "text-red-500"}`}>
+                  {netTotal >= 0 ? "+" : ""}{netTotal.toFixed(2)}
+                </span></div>
+            </div>
+          </CardDescription>
+        </div>
         {filteredTransactions.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">
             {transactions.length === 0 ? `ยังไม่มีธุรกรรมสำหรับ ${userName} กรุณาเพิ่มธุรกรรมใหม่` : "ไม่พบธุรกรรมที่ตรงกับการค้นหา"}
@@ -340,9 +373,8 @@ export default function TransactionList({
                       </div>
                       <div className="flex items-center space-x-2">
                         <p
-                          className={`font-semibold ${
-                            transaction.type === "income" ? "text-emerald-500" : "text-rose-500"
-                          }`}
+                          className={`font-semibold ${transaction.type === "income" ? "text-emerald-500" : "text-rose-500"
+                            }`}
                         >
                           {transaction.type === "income" ? "+" : "-"}
                           {transaction.amount.toFixed(2)}
