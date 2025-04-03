@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowDownIcon, ArrowUpIcon, SearchIcon, Trash2Icon, Loader2, CalendarIcon } from "lucide-react"
+import { ArrowDownIcon, ArrowUpIcon, SearchIcon, Trash2Icon, Loader2, CalendarIcon, XCircleIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { Transaction } from "@/lib/types"
@@ -24,6 +24,10 @@ import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { format, isSameDay } from "date-fns"
+import { th } from "date-fns/locale"
 
 interface TransactionListProps {
   transactions: Transaction[]
@@ -50,16 +54,15 @@ export default function TransactionList({
   transactions,
   onDelete,
   userName,
-
+  userAvatar,
   userFallback,
 }: TransactionListProps) {
   const [search, setSearch] = useState("")
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [selectedMonth, setSelectedMonth] = useState<string>("all")
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())  
   const isMobile = useMobile()
   const { toast } = useToast()
-  const userAvatar = userName === "Bon" ? "/bad_boy.jpg" : "/cute_girl.png" 
-
 
   // Get unique months from transactions
   const availableMonths = useMemo(() => {
@@ -82,7 +85,7 @@ export default function TransactionList({
     return Array.from(months.values()).sort((a, b) => b.date.getTime() - a.date.getTime())
   }, [transactions])
 
-  // Filter transactions by search term and selected month
+  // Filter transactions by search term, selected month, and selected day
   const filteredTransactions = useMemo(() => {
     return transactions
       .filter((t) => {
@@ -99,10 +102,18 @@ export default function TransactionList({
             return getMonthKey(date) === selectedMonth
           })()
 
-        return matchesSearch && matchesMonth
+        // Filter by day if a specific day is selected
+        const matchesDay =
+          !selectedDate ||
+          (() => {
+            const date = new Date(t.date)
+            return isSameDay(date, selectedDate)
+          })()
+
+        return matchesSearch && matchesMonth && matchesDay
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  }, [transactions, search, selectedMonth])
+  }, [transactions, search, selectedMonth, selectedDate])
 
   // Group transactions by month
   const groupedTransactions = useMemo(() => {
@@ -154,11 +165,42 @@ export default function TransactionList({
     setDeletingId(null)
   }
 
+  // Clear all filters
+  const clearFilters = () => {
+    setSelectedMonth("all")
+    setSelectedDate(null)
+    setSearch("")
+  }
+
+  // Handle date selection
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date)
+
+      // Also set the month filter to match the selected date
+      const monthKey = getMonthKey(date)
+      setSelectedMonth(monthKey)
+    }
+  }
+
+  // Handle month selection
+  const handleMonthSelect = (month: string) => {
+    setSelectedMonth(month)
+
+    // If a day was selected and the month changes, clear the day selection
+    if (selectedDate && month !== "all") {
+      const selectedDateMonth = getMonthKey(selectedDate)
+      if (selectedDateMonth !== month) {
+        setSelectedDate(null)
+      }
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>ประวัติรายรับรายจ่าย</CardTitle>
+          <CardTitle>ประวัติธุรกรรม</CardTitle>
           <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
             <Avatar className="h-6 w-6">
               <AvatarImage src={userAvatar} alt={userName} />
@@ -180,25 +222,82 @@ export default function TransactionList({
             />
           </div>
 
-          <div className="w-full sm:w-[180px]">
-            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-full">
-                <div className="flex items-center gap-2">
-                  <CalendarIcon className="h-4 w-4" />
-                  <SelectValue placeholder="เลือกเดือน" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">ทุกเดือน</SelectItem>
-                {availableMonths.map((month) => (
-                  <SelectItem key={month.key} value={month.key}>
-                    {month.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex gap-2">
+            <div className="w-full sm:w-[180px]">
+              <Select value={selectedMonth} onValueChange={handleMonthSelect}>
+                <SelectTrigger className="w-full">
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4" />
+                    <SelectValue placeholder="เลือกเดือน" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">ทุกเดือน</SelectItem>
+                  {availableMonths.map((month) => (
+                    <SelectItem key={month.key} value={month.key}>
+                      {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant={selectedDate ? "default" : "outline"} className="w-full sm:w-auto">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "dd MMM yyyy", { locale: th }) : "เลือกวัน"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar mode="single" selected={selectedDate || undefined} onSelect={handleDateSelect} initialFocus />
+              </PopoverContent>
+            </Popover>
+
+            {(selectedMonth !== "all" || selectedDate || search) && (
+              <Button variant="ghost" size="icon" onClick={clearFilters} title="ล้างตัวกรอง">
+                <XCircleIcon className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
+
+        {/* Active filters display */}
+        {(selectedMonth !== "all" || selectedDate || search) && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {selectedMonth !== "all" && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <span>เดือน: {availableMonths.find((m) => m.key === selectedMonth)?.label}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4 ml-1 p-0"
+                  onClick={() => setSelectedMonth("all")}
+                >
+                  <XCircleIcon className="h-3 w-3" />
+                </Button>
+              </Badge>
+            )}
+
+            {selectedDate && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <span>วัน: {format(selectedDate, "dd MMM yyyy", { locale: th })}</span>
+                <Button variant="ghost" size="icon" className="h-4 w-4 ml-1 p-0" onClick={() => setSelectedDate(null)}>
+                  <XCircleIcon className="h-3 w-3" />
+                </Button>
+              </Badge>
+            )}
+
+            {search && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <span>ค้นหา: {search}</span>
+                <Button variant="ghost" size="icon" className="h-4 w-4 ml-1 p-0" onClick={() => setSearch("")}>
+                  <XCircleIcon className="h-3 w-3" />
+                </Button>
+              </Badge>
+            )}
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         {filteredTransactions.length === 0 ? (
@@ -292,4 +391,3 @@ export default function TransactionList({
     </Card>
   )
 }
-
