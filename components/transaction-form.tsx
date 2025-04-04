@@ -25,6 +25,7 @@ export default function TransactionForm({ onSubmit, userName, userFallback }: Tr
   const [amount, setAmount] = useState("")
   const [category, setCategory] = useState("ทั่วไป")
   const [type, setType] = useState<"income" | "expense">("expense")
+  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0])  // Default to today's date
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
   const userAvatar = userName === "Bon" ? "/bad_boy.jpg" : "/cute_girl.png" 
@@ -42,7 +43,7 @@ export default function TransactionForm({ onSubmit, userName, userFallback }: Tr
       amount: Number.parseFloat(amount),
       category,
       type,
-      date: new Date().toISOString(),
+      date, // Use the selected date
     }
 
     const success = await onSubmit(transaction)
@@ -54,6 +55,7 @@ export default function TransactionForm({ onSubmit, userName, userFallback }: Tr
       setDescription("")
       setAmount("")
       setCategory("ทั่วไป")
+      setDate(new Date().toISOString().split('T')[0])  // Reset to today's date
 
       toast({
         title: "เพิ่มธุรกรรมสำเร็จ",
@@ -102,6 +104,16 @@ export default function TransactionForm({ onSubmit, userName, userFallback }: Tr
             </RadioGroup>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="date">วันที่</Label>
+            <Input
+              id="date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+          
           <div className="space-y-2">
             <Label htmlFor="description">รายละเอียด</Label>
             <Input
@@ -162,4 +174,3 @@ export default function TransactionForm({ onSubmit, userName, userFallback }: Tr
     </Card>
   )
 }
-
